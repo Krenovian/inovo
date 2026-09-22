@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { useMouseParallax } from '@/hooks/useMouseParallax';
 
-const SLIDES = [
+const FALLBACK_SLIDES = [
   { id: 'wayanad', title: 'The Mist Pavilion', location: 'Wayanad', image: '/images/wayanad-pavilion.jpg' },
   { id: 'calicut', title: 'Nalukettu Continuum', location: 'Calicut', image: '/images/calicut-courtyard.jpg' },
   { id: 'kannur', title: 'Arabian Horizon', location: 'Kannur', image: '/images/kannur-cliff.jpg' },
@@ -60,7 +60,29 @@ export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [loaded, setLoaded] = useState(false);
+  const [slides, setSlides] = useState(FALLBACK_SLIDES);
+  
+  // Settings State
+  const [settings, setSettings] = useState<Record<string, string>>({});
+
   const mousePos = useMouseParallax();
+
+  // Fetch dynamic slides from DB
+  useEffect(() => {
+    fetch('/api/content')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.heroSlides && data.heroSlides.length > 0) {
+          setSlides(data.heroSlides.map((s: { id: string; title: string; location: string; image: string }) => ({
+            id: s.id, title: s.title, location: s.location, image: s.image,
+          })));
+          if (data.settings) {
+            setSettings(data.settings);
+          }
+        }
+      })
+      .catch(() => {/* keep fallback */});
+  }, []);
 
   useEffect(() => {
     setLoaded(true);
@@ -85,14 +107,27 @@ export default function Hero() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const totalSlides = SLIDES.length;
+  const totalSlides = slides.length;
   const activeIndex = Math.min(Math.floor(scrollProgress * totalSlides), totalSlides - 1);
-  const activeSlide = SLIDES[activeIndex];
+  const activeSlide = slides[activeIndex];
+
 
   const smoothScroll = (e: React.MouseEvent, href: string) => {
     e.preventDefault();
     document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  const dynamicHeadingsList = settings.heroHeadings 
+    ? settings.heroHeadings.split(',').map(s => s.trim().replace(/\\n/g, '\n'))
+    : DYNAMIC_HEADINGS;
+  
+  // Ensure we don't go out of bounds if there are fewer headings than slides
+  const activeHeading = dynamicHeadingsList[activeIndex % dynamicHeadingsList.length] || dynamicHeadingsList[0];
+
+  const word1 = settings.heroWord1 || 'Purpose';
+  const word2 = settings.heroWord2 || 'Legacy';
+  const manifesto = settings.heroManifesto || 'Spaces shaped with intention — lasting beyond the moment.';
+  const subtext = settings.heroSubtext || 'We don\'t just design spaces; we curate environments that speak louder than words.';
 
   return (
     <section
@@ -107,12 +142,12 @@ export default function Hero() {
           <div className="hero-headlines-desk hide-mobile">
             <h1>
               <span className="hero-prefix">Design with</span>
-              <Typewriter text="Purpose" delay={500} />
+              {loaded && <Typewriter text={word1} delay={500} />}
               <span className="cursor-blink" aria-hidden />
             </h1>
             <h1 className="is-right">
               <span className="hero-prefix">Define by</span>
-              <Typewriter text="Legacy" delay={1200} />
+              {loaded && <Typewriter text={word2} delay={1200} />}
               <span className="cursor-blink" aria-hidden style={{ animationDelay: '1.2s' }} />
             </h1>
           </div>
@@ -122,7 +157,7 @@ export default function Hero() {
             <div className="hero-manifesto-block is-a">
               <span className="hero-manifesto-label">Design with</span>
               <h1 className="hero-manifesto-word">
-                <Typewriter text="Purpose" delay={400} speed={55} />
+                {loaded && <Typewriter text={word1} delay={400} speed={55} />}
                 <em className="cursor-blink" aria-hidden />
               </h1>
             </div>
@@ -136,13 +171,13 @@ export default function Hero() {
             <div className="hero-manifesto-block is-b">
               <span className="hero-manifesto-label">Define by</span>
               <h1 className="hero-manifesto-word is-ghost">
-                <Typewriter text="Legacy" delay={1100} speed={55} />
+                {loaded && <Typewriter text={word2} delay={1100} speed={55} />}
                 <em className="cursor-blink" aria-hidden style={{ animationDelay: '1.1s' }} />
               </h1>
             </div>
 
             <p className="hero-manifesto-note">
-              Spaces shaped with intention — lasting beyond the moment.
+              {manifesto}
             </p>
           </div>
         </div>
@@ -172,7 +207,7 @@ export default function Hero() {
               transform: `translate3d(${mousePos.x * -10}px, ${mousePos.y * -10}px, 0) scale(1.05)`,
             }}
           >
-            {SLIDES.map((slide, index) => (
+            {slides.map((slide, index) => (
               <div
                 key={slide.id}
                 className={`hero-slide${index === activeIndex ? ' is-active' : ''}`}
@@ -199,11 +234,10 @@ export default function Hero() {
           >
             <span>Selected Works</span>
             <h2 key={`h-${activeIndex}`} className="dynamic-scramble">
-              {DYNAMIC_HEADINGS[activeIndex]}
+              {activeHeading}
             </h2>
             <p>
-              We don&apos;t just design spaces; we curate environments that speak louder than
-              words.
+              {subtext}
             </p>
             <a
               href="#projects"
@@ -237,10 +271,10 @@ export default function Hero() {
             </div>
             <div className="hero-status">
               <span>Current Status</span>
-              <h3>Accepting New Projects</h3>
-              <p>For Q4 2026 onwards.</p>
+              <h3>{settings.availabilityStatus || 'Accepting New Projects'}</h3>
+              <p>{settings.availabilityNote || 'For Q4 2026 onwards.'}</p>
               <Link href="/contact" className="hero-cta-sm hover-lift">
-                Enquire Now <ArrowRight size={14} />
+                {settings.enquireText || 'Enquire Now'} <ArrowRight size={14} />
               </Link>
             </div>
           </div>
@@ -264,7 +298,7 @@ export default function Hero() {
             </div>
 
             <div key={`m-h-${activeIndex}`} className="hero-mobile-heading dynamic-scramble">
-              {DYNAMIC_HEADINGS[activeIndex]}
+              {activeHeading}
             </div>
 
             <div className="hero-mobile-foot">
@@ -273,7 +307,7 @@ export default function Hero() {
                 <p>{activeSlide.location}</p>
               </div>
               <div className="hero-mobile-progress" aria-hidden>
-                {SLIDES.map((s, i) => (
+                {slides.map((s, i) => (
                   <i
                     key={s.id}
                     className={
@@ -678,7 +712,7 @@ export default function Hero() {
           animation: fadeUpMobile 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* ════════ Mobile: exact 50 / 50 ════════ */
+        /* ════════ Mobile: 35 / 65 split ════════ */
         @media (max-width: 960px) {
           .hide-mobile {
             display: none !important;
@@ -691,7 +725,7 @@ export default function Hero() {
             padding: 0;
             padding-top: 0;
             display: grid;
-            grid-template-rows: 50svh 50svh;
+            grid-template-rows: 35svh 65svh;
             height: 100svh;
           }
 

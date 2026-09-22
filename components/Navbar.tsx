@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X, ArrowUpRight } from 'lucide-react';
+import { Menu, X, ArrowUpRight, ChevronLeft, ChevronRight, Phone, Mail } from 'lucide-react';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { FaInstagram, FaFacebookF, FaLinkedinIn, FaYoutube, FaVimeoV, FaBehance, FaPinterestP, FaWhatsapp } from 'react-icons/fa';
@@ -45,6 +45,20 @@ export default function Navbar() {
               ? 'About Us'
               : 'Home'
   );
+  const [assistExpanded, setAssistExpanded] = useState(true);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStart === null) return;
+    const touchEnd = e.changedTouches[0].clientX;
+    if (touchEnd - touchStart > 30) {
+      setAssistExpanded(false);
+    }
+    setTouchStart(null);
+  };
 
   useEffect(() => {
     setLoaded(true);
@@ -301,8 +315,8 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Premium Glassmorphism Nav Pill Wrapper */}
-      <div style={{
+      {/* ── Desktop Floating Nav Pill ── */}
+      <div className="nav-desktop" style={{
         position: 'fixed', bottom: 'clamp(1.5rem, 4vh, 2.5rem)', left: 0, right: 0, zIndex: 9999,
         pointerEvents: scrolled ? 'auto' : 'none',
         display: 'flex', justifyContent: 'center'
@@ -340,8 +354,8 @@ export default function Navbar() {
             </div>
           </button>
 
-          {/* Full Links (Desktop) */}
-          <nav className="nav-desktop" style={{ display: 'flex', alignItems: 'center', padding: '0 0.5rem', gap: '0.25rem' }}>
+          {/* Full Links */}
+          <nav style={{ display: 'flex', alignItems: 'center', padding: '0 0.5rem', gap: '0.25rem' }}>
             {ALL_NAV.map((item) => {
               const isActive = activeSection === item.label;
               return (
@@ -377,15 +391,6 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* Current Section Indicator (Mobile) */}
-          <span className="nav-mobile-toggle" style={{
-            fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase',
-            letterSpacing: '0.1em', whiteSpace: 'nowrap', display: 'none', padding: '0 1rem',
-            color: '#FFF'
-          }}>
-            {activeSection}
-          </span>
-
           {/* Vertical Divider */}
           <div style={{ width: '1px', height: '24px', backgroundColor: '#FFF', opacity: 0.15, margin: '0 0.25rem' }}></div>
 
@@ -414,81 +419,194 @@ export default function Navbar() {
             >
               <FaWhatsapp size={20} />
             </a>
-
-            {/* Hamburger Menu Toggle (Mobile) */}
-            <button className="nav-mobile-toggle" onClick={() => setMenuOpen(!menuOpen)} style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              width: '46px', height: '46px', borderRadius: '50%',
-              backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', 
-              color: '#FFF', cursor: 'pointer',
-              transition: 'all 0.3s ease'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'}
-            >
-              {menuOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
           </div>
         </div>
-
-        {/* Desktop Popover Menu (floating above the pill) */}
-        {menuOpen && (
-          <div className="desktop-popover-menu" style={{
-            position: 'absolute', bottom: '120%', right: '0',
-            backgroundColor: 'rgba(20,20,20,0.85)', backdropFilter: 'blur(20px)',
-            padding: '1.5rem', borderRadius: '24px',
-            display: 'flex', flexDirection: 'column', gap: '1rem',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.5)', minWidth: '200px',
-            border: '1px solid rgba(255,255,255,0.1)', pointerEvents: 'auto'
-          }}>
-            {ALL_NAV.map((item) => (
-              <a key={item.label} href={item.href} onClick={(e) => smoothScroll(e, item.href)}
-                style={{
-                  fontFamily: 'var(--font-body)', fontSize: '0.8rem', color: '#FFF', textDecoration: 'none',
-                  textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600,
-                  transition: 'color 0.2s',
-                }}
-                className="hover-line"
-              >
-                {item.label}
-              </a>
-            ))}
-          </div>
-        )}
-
       </div>
 
-      {/* Mobile Full Screen Drawer */}
-      {menuOpen && (
-        <div className="mobile-drawer-menu" style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(10px)',
-          padding: '3rem 2rem',
-          display: 'flex', flexDirection: 'column', gap: '1.5rem', zIndex: 99999,
-          justifyContent: 'center', alignItems: 'center'
+      {/* ── Mobile Sticky Pill / Edge Assist ── */}
+      <div 
+        className="nav-mobile-toggle"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        style={{
+          position: 'fixed', 
+          bottom: 'clamp(1.5rem, 4vh, 2.5rem)', 
+          right: assistExpanded ? '50%' : '1.5rem', 
+          transform: assistExpanded ? 'translateX(50%)' : (scrolled ? 'translateX(0)' : 'translateX(150%)'),
+          zIndex: 9999,
+          pointerEvents: scrolled ? 'auto' : 'none',
+          display: 'flex', 
+          transition: 'all 0.6s cubic-bezier(0.16,1,0.3,1)',
+          opacity: scrolled ? 1 : 0,
+          maxWidth: assistExpanded ? 'calc(100vw - 1.5rem)' : 'auto',
+        }}
+      >
+        <div style={{
+          backgroundColor: 'rgba(20, 20, 20, 0.75)', 
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          padding: assistExpanded ? '0.4rem' : '0.4rem', 
+          borderRadius: '50px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1)',
+          display: 'flex', 
+          flexDirection: assistExpanded ? 'row' : 'column',
+          alignItems: 'center', 
+          gap: assistExpanded ? '0.4rem' : '0',
+          transition: 'all 0.5s cubic-bezier(0.16,1,0.3,1)',
+          width: '100%',
+          justifyContent: 'space-between'
         }}>
-          <button onClick={() => setMenuOpen(false)} style={{
-            position: 'absolute', top: '2.5rem', right: '3rem',
-            background: 'transparent', border: 'none', color: '#FFF', cursor: 'pointer'
-          }}>
-            <X size={32} />
-          </button>
           
+          {assistExpanded ? (
+            <>
+              {/* Logo Button */}
+              <button onClick={() => { smoothScroll({ preventDefault: () => {} } as any, '/#hero'); setAssistExpanded(false); }} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                width: '42px', height: '42px', borderRadius: '50%', 
+                backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', 
+                cursor: 'pointer', position: 'relative', overflow: 'hidden',
+              }}>
+                <div style={{ position: 'relative', width: '20px', height: '20px' }}>
+                  <Image src="/images/logo.png" alt="INOVO" fill style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
+                </div>
+              </button>
+
+              <div style={{ width: '1px', height: '24px', backgroundColor: 'rgba(255,255,255,0.15)', flexShrink: 0 }} />
+
+              {/* Social Icons */}
+              <div className="no-scrollbar" style={{ display: 'flex', gap: '0.4rem', overflowX: 'auto', flex: 1, WebkitOverflowScrolling: 'touch' }}>
+                {[
+                  { Icon: FaInstagram, href: 'https://www.instagram.com/inovodevelopers' },
+                  { Icon: FaFacebookF, href: 'https://www.facebook.com/InovoDevelopers' },
+                  { Icon: FaLinkedinIn, href: 'https://www.linkedin.com/company/81495212/admin/dashboard/' },
+                  { Icon: FaYoutube, href: 'https://www.youtube.com/@InovoDevelopers' },
+                  { Icon: FaVimeoV, href: 'https://vimeo.com/user263023400' },
+                  { Icon: FaBehance, href: 'https://www.behance.net/inovodevelopers' },
+                  { Icon: FaPinterestP, href: 'https://in.pinterest.com/inovodevelopers/' }
+                ].map((social, i) => (
+                  <a key={i} href={social.href} target="_blank" rel="noreferrer" style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                    width: '36px', height: '36px', borderRadius: '50%',
+                    backgroundColor: 'rgba(255,255,255,0.05)', color: '#FFF', textDecoration: 'none',
+                  }}>
+                    <social.Icon size={14} />
+                  </a>
+                ))}
+              </div>
+
+              <div style={{ width: '1px', height: '24px', backgroundColor: 'rgba(255,255,255,0.15)', flexShrink: 0 }} />
+
+              {/* WhatsApp */}
+              <a href="https://wa.me/919809442227" target="_blank" rel="noreferrer" style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                width: '42px', height: '42px', borderRadius: '50%',
+                backgroundColor: '#25D366', color: '#FFF', textDecoration: 'none',
+                boxShadow: '0 5px 15px rgba(37, 211, 102, 0.3)',
+              }}>
+                <FaWhatsapp size={18} />
+              </a>
+
+              {/* Menu Toggle */}
+              <button onClick={() => setMenuOpen(!menuOpen)} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                width: '42px', height: '42px', borderRadius: '50%',
+                backgroundColor: menuOpen ? '#FFF' : 'rgba(255,255,255,0.05)', 
+                border: '1px solid rgba(255,255,255,0.1)', color: menuOpen ? '#000' : '#FFF',
+              }}>
+                {menuOpen ? <X size={18} /> : <Menu size={18} />}
+              </button>
+              
+              {/* Collapse Handle */}
+              <button onClick={() => setAssistExpanded(false)} style={{
+                background: 'transparent', border: 'none', color: '#888', cursor: 'pointer', flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '0.2rem', marginLeft: '-0.3rem'
+              }}>
+                <ChevronRight size={20} />
+              </button>
+            </>
+          ) : (
+            <>
+              {/* Expand Handle */}
+              <button onClick={() => setAssistExpanded(true)} style={{
+                background: 'transparent', border: 'none', color: '#FFF', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: '46px', height: '46px', borderRadius: '50%'
+              }}>
+                <Menu size={24} />
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* ── Mobile Full Screen Drawer ── */}
+      <div className={`mobile-drawer-menu ${menuOpen ? 'open' : ''}`} style={{
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: 'rgba(10, 10, 10, 0.85)',
+        backdropFilter: 'blur(30px) saturate(150%)',
+        WebkitBackdropFilter: 'blur(30px) saturate(150%)',
+        padding: '5rem 2rem 3rem',
+        display: 'flex', flexDirection: 'column', zIndex: 99998,
+        justifyContent: 'space-between',
+        transition: 'opacity 0.4s ease-in-out, transform 0.5s cubic-bezier(0.16,1,0.3,1)',
+        opacity: menuOpen ? 1 : 0,
+        transform: menuOpen ? 'translateY(0)' : 'translateY(-10px)',
+        pointerEvents: menuOpen ? 'auto' : 'none'
+      }}>
+        
+        <button onClick={() => setMenuOpen(false)} style={{
+          position: 'absolute', top: '1.5rem', right: '1.5rem',
+          background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', 
+          color: '#FFF', cursor: 'pointer', borderRadius: '50%',
+          width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 99999
+        }}>
+          <X size={24} />
+        </button>
+
+        {/* Navigation Links */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           {ALL_NAV.map((item, i) => (
             <a key={item.label} href={item.href} onClick={(e) => smoothScroll(e, item.href)}
               className="drawer-link"
               style={{
-                fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4.8vw, 3.2rem)', color: '#FFF', textDecoration: 'none',
-                display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem',
-                textTransform: 'uppercase', transition: 'color 0.3s ease, transform 0.3s ease'
+                fontFamily: 'var(--font-display)', fontSize: 'clamp(2.4rem, 10vw, 3.6rem)', color: '#FFF', textDecoration: 'none',
+                display: 'flex', alignItems: 'baseline', gap: '1rem',
+                textTransform: 'uppercase', lineHeight: 0.9,
+                opacity: menuOpen ? 1 : 0,
+                transform: menuOpen ? 'translateY(0)' : 'translateY(20px)',
+                transition: `all 0.5s cubic-bezier(0.16,1,0.3,1) ${0.1 + i * 0.05}s`
               }}
             >
-              <span style={{ fontSize: '1rem', color: '#666', fontFamily: 'var(--font-body)', alignSelf: 'flex-start', marginTop: '0.5rem' }}>0{i + 1}</span>
+              <span style={{ fontSize: '0.9rem', color: '#666', fontFamily: 'var(--font-body)', fontWeight: 600, letterSpacing: '2px' }}>
+                0{i + 1}
+              </span>
               <span>{item.label}</span>
             </a>
           ))}
         </div>
-      )}
+
+        {/* Drawer Footer (Contact Info) */}
+        <div style={{
+          borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1.5rem',
+          display: 'flex', flexDirection: 'column', gap: '0.8rem',
+          opacity: menuOpen ? 1 : 0,
+          transform: menuOpen ? 'translateY(0)' : 'translateY(20px)',
+          transition: 'all 0.5s cubic-bezier(0.16,1,0.3,1) 0.5s'
+        }}>
+          <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: '0.75rem', color: '#888', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            Get in touch
+          </p>
+          <a href="mailto:info@inovodevelopers.com" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#FFF', textDecoration: 'none', fontSize: '0.9rem', fontFamily: 'var(--font-body)' }}>
+            <Mail size={16} /> info@inovodevelopers.com
+          </a>
+          <a href="tel:+919809442227" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#FFF', textDecoration: 'none', fontSize: '0.9rem', fontFamily: 'var(--font-body)' }}>
+            <Phone size={16} /> +91 98094 42227
+          </a>
+        </div>
+      </div>
 
       <style jsx>{`
         @media (min-width: 1024px) {
@@ -513,9 +631,31 @@ export default function Navbar() {
             height: 48px !important;
           }
         }
+        .drawer-link {
+          position: relative;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+        }
+        .drawer-link::after {
+          content: '';
+          position: absolute;
+          bottom: -4px;
+          left: 35px;
+          width: 0;
+          height: 2px;
+          background-color: #fff;
+          transition: width 0.3s ease;
+        }
+        .drawer-link:hover::after {
+          width: calc(100% - 35px);
+        }
         .drawer-link:hover {
-          color: #888 !important;
-          transform: translateX(10px);
+          color: #DDD !important;
         }
       `}</style>
     </>

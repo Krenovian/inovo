@@ -12,7 +12,6 @@ export default function ScrollEngine() {
 
   useEffect(() => {
     // ─── Scroll Reveal (IntersectionObserver) ───
-    const revealElements = document.querySelectorAll('[data-reveal]');
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -24,10 +23,20 @@ export default function ScrollEngine() {
       },
       { threshold: 0.12, rootMargin: '0px 0px -60px 0px' }
     );
-    revealElements.forEach((el) => observer.observe(el));
+
+    const observeRevealElements = () => {
+      document.querySelectorAll('[data-reveal]:not(.is-visible)').forEach((el) => {
+        observer.observe(el);
+      });
+    };
+    observeRevealElements(); // Initial observation
 
     // ─── Parallax Scroll Effect ───
-    const parallaxElements = document.querySelectorAll<HTMLElement>('[data-parallax]');
+    let parallaxElements = document.querySelectorAll<HTMLElement>('[data-parallax]');
+    
+    const updateParallaxElements = () => {
+      parallaxElements = document.querySelectorAll<HTMLElement>('[data-parallax]');
+    };
 
     const handleParallax = () => {
       const scrollY = window.scrollY;
@@ -55,8 +64,28 @@ export default function ScrollEngine() {
     window.addEventListener('scroll', onScroll, { passive: true });
     handleParallax(); // Initial call
 
+    // ─── Mutation Observer for Dynamic Elements ───
+    // When components like ProjectsShowcase fetch data asynchronously,
+    // they insert new DOM elements. We must observe them.
+    const domObserver = new MutationObserver((mutations) => {
+      let shouldUpdate = false;
+      for (const m of mutations) {
+        if (m.addedNodes.length > 0) {
+          shouldUpdate = true;
+          break;
+        }
+      }
+      if (shouldUpdate) {
+        observeRevealElements();
+        updateParallaxElements();
+      }
+    });
+
+    domObserver.observe(document.body, { childList: true, subtree: true });
+
     return () => {
       observer.disconnect();
+      domObserver.disconnect();
       window.removeEventListener('scroll', onScroll);
       cancelAnimationFrame(rafId.current);
     };

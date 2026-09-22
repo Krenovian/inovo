@@ -13,7 +13,19 @@ export default function ContactEditorial() {
   const [form, setForm] = useState({ name: '', email: '', topic: 'Residential', message: '' });
   const [submitted, setSubmitted] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [whatsappNumber, setWhatsappNumber] = useState<string | null>(null);
   const mousePos = useMouseParallax();
+
+  React.useEffect(() => {
+    fetch('/api/content')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.settings?.whatsappNumber) {
+          setWhatsappNumber(data.settings.whatsappNumber);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -21,7 +33,14 @@ export default function ContactEditorial() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.name && form.email) setSubmitted(true);
+    if (form.name && form.email) {
+      if (whatsappNumber) {
+        const text = `Name: ${form.name}\nEmail: ${form.email}\nTopic: ${form.topic}\nMessage: ${form.message}`;
+        const encodedText = encodeURIComponent(text);
+        window.open(`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodedText}`, '_blank');
+      }
+      setSubmitted(true);
+    }
   };
 
   const enquiryText = `Name: ${form.name}\nEmail: ${form.email}\nTopic: ${form.topic}\nMessage: ${form.message}`;

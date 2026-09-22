@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
@@ -11,7 +11,26 @@ export default function ProjectsShowcase() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [selected, setSelected] = useState<Project | null>(null);
+  const [projects, setProjects] = useState<Project[]>(PROJECTS);
   const mousePos = useMouseParallax();
+
+  // Fetch dynamic projects from DB
+  useEffect(() => {
+    fetch('/api/content')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.projects && data.projects.length > 0) {
+          // Map DB project (category enum) back to the display format
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          setProjects(data.projects.map((p: any) => ({
+            ...p,
+            category: p.category === 'InteriorDesign' ? 'Interior Design' : p.category,
+            status: p.status === 'InProgress' ? 'In Progress' : p.status,
+          })));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -36,7 +55,8 @@ export default function ProjectsShowcase() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const displayProjects = PROJECTS.slice(0, 6);
+  const displayProjects = projects.slice(0, 6);
+  const handleCloseModal = React.useCallback(() => setSelected(null), []);
 
   const openNext = () => {
     if (!selected) return;
@@ -209,8 +229,7 @@ export default function ProjectsShowcase() {
 
       <ProjectModal
         project={selected}
-        onClose={() => setSelected(null)}
-        onNextProject={openNext}
+        onClose={handleCloseModal}
       />
 
       <style jsx>{`

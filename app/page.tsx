@@ -26,11 +26,11 @@ export default function HomePage() {
         {/* 01: Hero — Full-screen visual impact */}
         <Hero />
 
-        {/* 02: Projects — Interactive scroll timeline */}
-        <ProjectsShowcase />
-
-        {/* 03: About — Fluid split layout */}
+        {/* 02: About — Fluid split layout */}
         <About />
+
+        {/* 03: Projects — Interactive scroll timeline */}
+        <ProjectsShowcase />
 
         {/* 04: Services — Image-driven interactive showcase */}
         <WhatWeDo />

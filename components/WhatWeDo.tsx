@@ -5,16 +5,35 @@ import Image from 'next/image';
 import { useMouseParallax } from '@/hooks/useMouseParallax';
 import { PRIMARY_SERVICES } from '@/data/services';
 
-const SERVICE_IMAGES: Record<string, { src: string; alt: string }> = {
-  'design-planning': { src: '/images/model.jpg', alt: 'Design and planning by INOVO' },
-  'interior-design': { src: '/images/interior-living.jpg', alt: 'Interior design by INOVO' },
-  'site-supervision': { src: '/images/site-supervision.jpg', alt: 'Site supervision by INOVO' },
+type ServiceData = {
+  id: string; slug: string; number: string; title: string;
+  shortDesc: string; deliverables: string[]; image: string;
 };
+
+const FALLBACK_SERVICES: ServiceData[] = PRIMARY_SERVICES.map((s) => ({
+  id: s.id, slug: s.id, number: s.number, title: s.title,
+  shortDesc: s.shortDesc, deliverables: s.deliverables,
+  image: s.id === 'design-planning' ? '/images/model.jpg'
+       : s.id === 'interior-design' ? '/images/interior-living.jpg'
+       : '/images/site-supervision.jpg',
+}));
 
 export default function WhatWeDo() {
   const [activeIndex, setActiveIndex] = useState(0);
   const mousePos = useMouseParallax();
   const containerRef = useRef<HTMLElement>(null);
+  const [services, setServices] = useState<ServiceData[]>(FALLBACK_SERVICES);
+
+  useEffect(() => {
+    fetch('/api/content')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.services && data.services.length > 0) {
+          setServices(data.services);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -49,7 +68,7 @@ export default function WhatWeDo() {
       ref={containerRef}
       id="whatwedo"
       style={{
-        height: `${PRIMARY_SERVICES.length * 100}vh`,
+        height: `${services.length * 100}vh`,
         backgroundColor: '#000',
         padding: 0,
         position: 'relative',
@@ -64,8 +83,7 @@ export default function WhatWeDo() {
           overflow: 'hidden',
         }}
       >
-        {PRIMARY_SERVICES.map((service, i) => {
-          const img = SERVICE_IMAGES[service.id];
+        {services.map((service, i) => {
           return (
             <div
               key={service.id}
@@ -88,7 +106,7 @@ export default function WhatWeDo() {
                   transition: 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
                 }}
               >
-                <Image src={img.src} alt={img.alt} fill style={{ objectFit: 'cover' }} />
+                <Image src={service.image} alt={service.title} fill style={{ objectFit: 'cover' }} />
               </div>
               <div
                 style={{
@@ -127,17 +145,19 @@ export default function WhatWeDo() {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'clamp(1.5rem, 3vw, 3rem)', maxWidth: '780px' }}>
-              <span
-                key={`n-${active.number}`}
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: 'clamp(1.8rem, 3vw, 3rem)',
-                  color: '#FFF',
-                  lineHeight: 1,
-                }}
-              >
-                {active.number}
-              </span>
+              {services[activeIndex] && (
+                <span
+                  key={`n-${services[activeIndex].number}`}
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 'clamp(1.8rem, 3vw, 3rem)',
+                    color: '#FFF',
+                    lineHeight: 1,
+                  }}
+                >
+                  {services[activeIndex].number}
+                </span>
+              )}
               <div>
                 <p
                   style={{
@@ -153,7 +173,7 @@ export default function WhatWeDo() {
                   What We Do
                 </p>
                 <h3
-                  key={`t-${active.id}`}
+                  key={`t-${services[activeIndex]?.id}`}
                   style={{
                     fontFamily: 'var(--font-display)',
                     fontSize: 'clamp(2.4rem, 5.5vw, 5.2rem)',
@@ -164,10 +184,10 @@ export default function WhatWeDo() {
                     textShadow: '0 10px 30px rgba(0,0,0,0.8)',
                   }}
                 >
-                  {active.title}
+                  {services[activeIndex]?.title}
                 </h3>
                 <p
-                  key={`d-${active.id}`}
+                  key={`d-${services[activeIndex]?.id}`}
                   style={{
                     fontFamily: 'var(--font-body)',
                     color: '#CCC',
@@ -177,14 +197,14 @@ export default function WhatWeDo() {
                     margin: '1.5rem 0 0',
                   }}
                 >
-                  {active.shortDesc}
+                  {services[activeIndex]?.shortDesc}
                 </p>
               </div>
             </div>
 
             <div
               className="hide-mobile"
-              key={`del-${active.id}`}
+              key={`del-${services[activeIndex]?.id}`}
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -206,7 +226,8 @@ export default function WhatWeDo() {
               >
                 Deliverables
               </span>
-              {active.deliverables.map((item) => (
+              {services[activeIndex]?.deliverables?.map((item) => (
+
                 <span
                   key={item}
                   style={{
@@ -231,7 +252,7 @@ export default function WhatWeDo() {
               flexWrap: 'wrap',
             }}
           >
-            {PRIMARY_SERVICES.map((service, i) => (
+            {services.map((service, i) => (
               <button
                 key={service.id}
                 type="button"

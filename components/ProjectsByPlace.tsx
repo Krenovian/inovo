@@ -10,6 +10,7 @@ export default function ProjectsByPlace() {
   const [location, setLocation] = useState<Project['location']>('Calicut');
   const [category, setCategory] = useState<string>('All');
   const [modalProject, setModalProject] = useState<Project | null>(null);
+  const handleCloseModal = React.useCallback(() => setModalProject(null), []);
 
   const filtered = PROJECTS
     .filter((p) => p.location === location)
@@ -159,7 +160,7 @@ export default function ProjectsByPlace() {
 
       </div>
 
-      <ProjectModal project={modalProject} onClose={() => setModalProject(null)} onNextProject={handleNext} />
+      <ProjectModal project={modalProject} onClose={handleCloseModal} />
       
       <style jsx>{`
         .project-card:hover .project-arrow { transform: translate(3px, -3px); }

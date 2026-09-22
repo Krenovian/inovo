@@ -1,0 +1,150 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Admin Auth ───────────────────────────────────────────────────────────────
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions AdminSession[]
+}
+
+model AdminSession {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Hero Slides ─────────────────────────────────────────────────────────────
+
+model HeroSlide {
+  id       String @id @default(cuid())
+  title    String
+  location String
+  image    String // path to /uploads/ or /images/
+  order    Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Projects ────────────────────────────────────────────────────────────────
+
+model Project {
+  id        String          @id @default(cuid())
+  slug      String          @unique
+  title     String
+  location  String
+  category  ProjectCategory
+  year      String
+  status    ProjectStatus
+  area      String
+  heroImage String
+  overview  String          @db.Text
+  scope     String[]        // e.g. ["Design & Planning", "Interior Design"]
+  gallery   Json            @default("[]") // GalleryItem[]
+  order     Int             @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ProjectCategory {
+  Residential
+  Commercial
+  Hospitality
+  InteriorDesign
+}
+
+enum ProjectStatus {
+  Completed
+  InProgress
+}
+
+// ─── Team Members ─────────────────────────────────────────────────────────────
+
+model TeamMember {
+  id    String @id @default(cuid())
+  name  String
+  role  String
+  quote String @db.Text
+  image String
+  order Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Services ─────────────────────────────────────────────────────────────────
+
+model Service {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  number      String   // e.g. "01"
+  shortDesc   String   @db.Text
+  deliverables String[]
+  image       String
+  order       Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Testimonials ─────────────────────────────────────────────────────────────
+
+model Testimonial {
+  id       String @id @default(cuid())
+  name     String
+  role     String
+  photo    String
+  videoUrl String
+  order    Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Site Settings ────────────────────────────────────────────────────────────
+
+model SiteSetting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String @db.Text
+
+  updatedAt DateTime @updatedAt
+}
+
+// ─── About Section ────────────────────────────────────────────────────────────
+
+model AboutSection {
+  id           String @id @default(cuid())
+  headlinePart1 String
+  headlinePart2 String
+  body         String @db.Text
+  stat1Value   String
+  stat1Label   String
+  stat2Value   String
+  stat2Label   String
+  shard1Image  String
+  shard2Image  String
+
+  updatedAt DateTime @updatedAt
+}

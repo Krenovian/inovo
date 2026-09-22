@@ -1,21 +1,35 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useMouseParallax } from '@/hooks/useMouseParallax';
 
-const FOUNDERS = [
+const FALLBACK_FOUNDERS = [
   { name: 'Bilal M', role: 'Co-Founder & Managing Partner', image: '/images/founder-bilal.jpg',
     quote: 'True spatial luxury is found in precision of proportion, quiet light, and the enduring honesty of materials.' },
   { name: 'Anu Shamil', role: 'Co-Founder & Managing Partner', image: '/images/founder-anu.jpg',
     quote: 'Our responsibility is to ensure that what begins as an inspired concept on paper survives every challenge of construction intact.' },
 ];
 
+type Founder = { name: string; role: string; image: string; quote: string; };
+
 export default function Team() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [exactMousePos, setExactMousePos] = useState({ x: 0, y: 0 });
   const [isHoveringSection, setIsHoveringSection] = useState(false);
+  const [founders, setFounders] = useState<Founder[]>(FALLBACK_FOUNDERS);
   const mousePos = useMouseParallax();
+
+  useEffect(() => {
+    fetch('/api/content')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.teamMembers && data.teamMembers.length > 0) {
+          setFounders(data.teamMembers);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <section id="team" className="section-vh" 
@@ -50,7 +64,7 @@ export default function Team() {
         width: 'clamp(250px, 30vw, 400px)', height: 'clamp(350px, 45vw, 550px)',
         borderRadius: '20px', overflow: 'hidden', boxShadow: '0 30px 60px rgba(0,0,0,0.3)'
       }} className="hide-mobile">
-        {FOUNDERS.map((f, i) => (
+        {founders.map((f, i) => (
           <div key={`img-${i}`} style={{
             position: 'absolute', inset: 0,
             opacity: hoveredIndex === i ? 1 : 0,
@@ -81,7 +95,7 @@ export default function Team() {
 
         {/* Cinematic Typographic List */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-          {FOUNDERS.map((f, i) => (
+          {founders.map((f, i) => (
             <div key={f.name} 
               onMouseEnter={() => setHoveredIndex(i)}
               onMouseLeave={() => setHoveredIndex(null)}

@@ -4,36 +4,38 @@ import React, { useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Volume2, VolumeX } from 'lucide-react';
 
-const TESTIMONIALS = [
+const FALLBACK_TESTIMONIALS = [
   {
-    id: 1,
+    id: '1',
     name: 'Sarah Jenkins',
     role: 'Homeowner, Calicut',
     photo: '/images/calicut-courtyard.jpg',
     videoUrl: 'https://www.youtube.com/embed/YykjpeuMNEk?autoplay=1&mute=1&controls=0&loop=1&enablejsapi=1',
   },
   {
-    id: 2,
+    id: '2',
     name: 'Michael Chen',
     role: 'CEO, TechFlow',
     photo: '/images/interior-living.jpg',
     videoUrl: 'https://www.youtube.com/embed/YykjpeuMNEk?autoplay=1&mute=1&controls=0&loop=1&enablejsapi=1',
   },
   {
-    id: 3,
+    id: '3',
     name: 'Priya Sharma',
     role: 'Founder, Studio 9',
     photo: '/images/wayanad-pavilion.jpg',
     videoUrl: 'https://www.youtube.com/embed/YykjpeuMNEk?autoplay=1&mute=1&controls=0&loop=1&enablejsapi=1',
   },
   {
-    id: 4,
+    id: '4',
     name: 'David Okafor',
     role: 'Managing Director, Apex',
     photo: '/images/calicut-courtyard.jpg',
     videoUrl: 'https://www.youtube.com/embed/YykjpeuMNEk?autoplay=1&mute=1&controls=0&loop=1&enablejsapi=1',
   }
 ];
+
+type TestimonialData = { id: string; name: string; role: string; photo: string; videoUrl: string; };
 
 export default function Testimonials() {
   const containerRef = useRef<HTMLElement>(null);
@@ -42,6 +44,18 @@ export default function Testimonials() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [trackWidth, setTrackWidth] = useState(0);
   const [windowWidth, setWindowWidth] = useState(0);
+  const [testimonials, setTestimonials] = useState<TestimonialData[]>(FALLBACK_TESTIMONIALS);
+
+  useEffect(() => {
+    fetch('/api/content')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.testimonials && data.testimonials.length > 0) {
+          setTestimonials(data.testimonials);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const measure = () => {
@@ -127,7 +141,7 @@ export default function Testimonials() {
             transform: `translate3d(-${translateX}px, 0, 0)`,
             willChange: 'transform'
           }}>
-            {TESTIMONIALS.map((testimonial) => (
+            {testimonials.map((testimonial) => (
               <TestimonialCard key={testimonial.id} testimonial={testimonial} />
             ))}
           </div>
