@@ -9,8 +9,8 @@ import { FaInstagram, FaFacebookF, FaLinkedinIn, FaYoutube, FaVimeoV, FaBehance,
 const LEFT_NAV = [
   { id: 'aboutus', label: 'About Us', href: '/about-inovo-developers' },
   { id: 'whatwedo', label: 'What We Do', href: '/what-we-do' },
-  { id: 'ourecosystem', label: 'Our Ecosystem', href: '/#ourecosystem' },
   { id: 'projects', label: 'Projects', href: '/our-projects' },
+  { id: 'ourecosystem', label: 'Our Ecosystem', href: '/#ourecosystem' },
 ];
 
 const RIGHT_NAV = [
