@@ -32,14 +32,14 @@ export default function HomePage() {
         {/* 03: Services — Image-driven interactive showcase */}
         <WhatWeDo />
 
-        {/* 04: Ecosystem — Dark monochrome typographic section */}
-        <Ecosystem />
+        {/* 04: Projects — Interactive scroll timeline */}
+        <ProjectsShowcase />
 
         {/* 05: Testimonials — Horizontal scroll video carousel */}
         <Testimonials />
 
-        {/* 06: Projects — Interactive scroll timeline */}
-        <ProjectsShowcase />
+        {/* 06: Ecosystem — Dark monochrome typographic section */}
+        <Ecosystem />
 
         {/* 07: Team — Clean minimal portraits */}
         <Team />
