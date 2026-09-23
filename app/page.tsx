@@ -29,20 +29,20 @@ export default function HomePage() {
         {/* 02: About — Fluid split layout */}
         <About />
 
-        {/* 03: Projects — Interactive scroll timeline */}
-        <ProjectsShowcase />
-
-        {/* 04: Services — Image-driven interactive showcase */}
+        {/* 03: Services — Image-driven interactive showcase */}
         <WhatWeDo />
 
-        {/* 05: Ecosystem — Dark monochrome typographic section */}
+        {/* 04: Ecosystem — Dark monochrome typographic section */}
         <Ecosystem />
 
-        {/* 06: Team — Clean minimal portraits */}
-        <Team />
-
-        {/* 07: Testimonials — Horizontal scroll video carousel */}
+        {/* 05: Testimonials — Horizontal scroll video carousel */}
         <Testimonials />
+
+        {/* 06: Projects — Interactive scroll timeline */}
+        <ProjectsShowcase />
+
+        {/* 07: Team — Clean minimal portraits */}
+        <Team />
 
         {/* 08: Contact — Editorial two-column enquiry */}
         <ContactEditorial />

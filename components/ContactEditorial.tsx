@@ -10,7 +10,7 @@ const TOPICS = [
 ];
 
 export default function ContactEditorial() {
-  const [form, setForm] = useState({ name: '', email: '', topic: 'Residential', message: '' });
+  const [form, setForm] = useState({ name: '', email: '', type: 'Residential', phoneNumber: '' });
   const [submitted, setSubmitted] = useState(false);
   const [copied, setCopied] = useState(false);
   const [whatsappNumber, setWhatsappNumber] = useState<string | null>(null);
@@ -35,7 +35,7 @@ export default function ContactEditorial() {
     e.preventDefault();
     if (form.name && form.email) {
       if (whatsappNumber) {
-        const text = `Name: ${form.name}\nEmail: ${form.email}\nTopic: ${form.topic}\nMessage: ${form.message}`;
+        const text = `Name: ${form.name}\nEmail: ${form.email}\nType: ${form.type}\nPhone Number: ${form.phoneNumber}`;
         const encodedText = encodeURIComponent(text);
         window.open(`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodedText}`, '_blank');
       }
@@ -43,7 +43,7 @@ export default function ContactEditorial() {
     }
   };
 
-  const enquiryText = `Name: ${form.name}\nEmail: ${form.email}\nTopic: ${form.topic}\nMessage: ${form.message}`;
+  const enquiryText = `Name: ${form.name}\nEmail: ${form.email}\nType: ${form.type}\nPhone Number: ${form.phoneNumber}`;
 
   return (
     <section id="contact" className="section-vh" style={{ backgroundColor: '#FFF', color: '#000', position: 'relative', overflow: 'hidden', padding: 0 }}>
@@ -95,16 +95,16 @@ export default function ContactEditorial() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2.5rem' }}>
                   <div className="minimal-input-group">
-                    <label htmlFor="topic">Topic *</label>
-                    <select id="topic" name="topic" value={form.topic} onChange={handleChange}>
+                    <label htmlFor="type">Type *</label>
+                    <select id="type" name="type" value={form.type} onChange={handleChange}>
                       {TOPICS.map((t) => <option key={t} value={t} style={{ color: '#000' }}>{t}</option>)}
                     </select>
                     <div className="input-line"></div>
                   </div>
                   
                   <div className="minimal-input-group">
-                    <label htmlFor="message">Message</label>
-                    <input id="message" name="message" type="text" value={form.message} onChange={handleChange} placeholder="PROJECT DETAILS" />
+                    <label htmlFor="phoneNumber">Phone Number *</label>
+                    <input id="phoneNumber" name="phoneNumber" type="tel" required value={form.phoneNumber} onChange={handleChange} placeholder="PHONE NUMBER" />
                     <div className="input-line"></div>
                   </div>
                 </div>
@@ -130,7 +130,7 @@ export default function ContactEditorial() {
               fontFamily: 'var(--font-display)', fontSize: 'clamp(1.6rem, 3.2vw, 2.4rem)', color: '#000', textTransform: 'uppercase', marginBottom: '1rem', lineHeight: 1
             }}>Enquiry Ready</h3>
             <p style={{ fontFamily: 'var(--font-body)', color: '#666', fontSize: '1rem', marginBottom: '3rem' }}>
-              Thank you, <strong>{form.name}</strong>. Your enquiry for {form.topic} is prepared.
+              Thank you, <strong>{form.name}</strong>. Your enquiry for {form.type} is prepared.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', justifyContent: 'center' }}>
               <button onClick={() => {

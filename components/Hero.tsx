@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, X } from 'lucide-react';
 import { useMouseParallax } from '@/hooks/useMouseParallax';
 
 const FALLBACK_SLIDES = [
@@ -64,6 +64,27 @@ export default function Hero() {
   
   // Settings State
   const [settings, setSettings] = useState<Record<string, string>>({});
+  
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [form, setForm] = useState({ name: '', email: '', type: 'Residential', phoneNumber: '' });
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (form.name && form.email) {
+      const waNum = settings.whatsappNumber;
+      if (waNum) {
+        const text = `Name: ${form.name}\nEmail: ${form.email}\nType: ${form.type}\nPhone Number: ${form.phoneNumber}`;
+        const encodedText = encodeURIComponent(text);
+        window.open(`https://wa.me/${waNum.replace(/[^0-9]/g, '')}?text=${encodedText}`, '_blank');
+      }
+      setIsModalOpen(false);
+    }
+  };
 
   const mousePos = useMouseParallax();
 
@@ -143,12 +164,10 @@ export default function Hero() {
             <h1>
               <span className="hero-prefix">Design with</span>
               {loaded && <Typewriter text={word1} delay={500} />}
-              <span className="cursor-blink" aria-hidden />
             </h1>
             <h1 className="is-right">
               <span className="hero-prefix">Define by</span>
               {loaded && <Typewriter text={word2} delay={1200} />}
-              <span className="cursor-blink" aria-hidden style={{ animationDelay: '1.2s' }} />
             </h1>
           </div>
 
@@ -158,7 +177,6 @@ export default function Hero() {
               <span className="hero-manifesto-label">Design with</span>
               <h1 className="hero-manifesto-word">
                 {loaded && <Typewriter text={word1} delay={400} speed={55} />}
-                <em className="cursor-blink" aria-hidden />
               </h1>
             </div>
 
@@ -172,13 +190,23 @@ export default function Hero() {
               <span className="hero-manifesto-label">Define by</span>
               <h1 className="hero-manifesto-word is-ghost">
                 {loaded && <Typewriter text={word2} delay={1100} speed={55} />}
-                <em className="cursor-blink" aria-hidden style={{ animationDelay: '1.1s' }} />
               </h1>
             </div>
 
             <p className="hero-manifesto-note">
               {manifesto}
             </p>
+          </div>
+        </div>
+
+        {/* Universal Scroll Indicator */}
+        <div className="hero-scroll-indicator" style={{ opacity: scrollProgress > 0.95 ? 0 : 1 }}>
+          <div className="scroll-indicator-text">
+            <span>Scroll</span>
+            <strong>{Math.round(scrollProgress * 100)}%</strong>
+          </div>
+          <div className="scroll-indicator-track">
+            <div className="scroll-indicator-fill" style={{ width: `${scrollProgress * 100}%` }} />
           </div>
         </div>
 
@@ -273,9 +301,9 @@ export default function Hero() {
               <span>Current Status</span>
               <h3>{settings.availabilityStatus || 'Accepting New Projects'}</h3>
               <p>{settings.availabilityNote || 'For Q4 2026 onwards.'}</p>
-              <Link href="/contact" className="hero-cta-sm hover-lift">
+              <button onClick={() => setIsModalOpen(true)} className="hero-cta-sm hover-lift" style={{ border: 'none', cursor: 'pointer' }}>
                 {settings.enquireText || 'Enquire Now'} <ArrowRight size={14} />
-              </Link>
+              </button>
             </div>
           </div>
 
@@ -320,6 +348,49 @@ export default function Hero() {
           </div>
         </div>
       </div>
+
+      {/* Modal Popup */}
+      {isModalOpen && (
+        <div className="hero-modal-overlay" onClick={() => setIsModalOpen(false)}>
+          <div className="hero-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="hero-modal-close" onClick={() => setIsModalOpen(false)}>
+              <X size={24} />
+            </button>
+            <h2 style={{ fontFamily: 'var(--font-display)', textTransform: 'uppercase', marginBottom: '1.5rem', color: '#000', fontSize: '2rem' }}>
+              Enquire Now
+            </h2>
+            <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="hero-input-group">
+                <label htmlFor="name">Name *</label>
+                <input id="name" name="name" type="text" required value={form.name} onChange={handleFormChange} placeholder="ENTER YOUR NAME" />
+                <div className="input-line"></div>
+              </div>
+              <div className="hero-input-group">
+                <label htmlFor="email">Email *</label>
+                <input id="email" name="email" type="email" required value={form.email} onChange={handleFormChange} placeholder="EMAIL ADDRESS" />
+                <div className="input-line"></div>
+              </div>
+              <div className="hero-input-group">
+                <label htmlFor="type">Type *</label>
+                <select id="type" name="type" value={form.type} onChange={handleFormChange}>
+                  {['Residential', 'Commercial', 'Hospitality', 'Interiors', 'Architecture', 'Other'].map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+                <div className="input-line"></div>
+              </div>
+              <div className="hero-input-group">
+                <label htmlFor="phoneNumber">Phone Number *</label>
+                <input id="phoneNumber" name="phoneNumber" type="tel" required value={form.phoneNumber} onChange={handleFormChange} placeholder="PHONE NUMBER" />
+                <div className="input-line"></div>
+              </div>
+              <button type="submit" className="hero-cta hover-lift" style={{ marginTop: '1rem', width: '100%', justifyContent: 'center', background: '#000', color: '#fff' }}>
+                Submit via WhatsApp
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         .hero-sticky {
@@ -370,14 +441,7 @@ export default function Hero() {
           font-family: var(--font-body);
           opacity: 0.85;
         }
-        .cursor-blink {
-          display: inline-block;
-          width: clamp(8px, 2vw, 20px);
-          height: clamp(1.5rem, 5vw, 6rem);
-          background: #000;
-          margin-left: 8px;
-          animation: cursorBlink 0.8s infinite;
-        }
+
 
         .hero-elevation {
           position: absolute;
@@ -390,6 +454,58 @@ export default function Hero() {
           z-index: 20;
           opacity: 0;
           transition: opacity 1s ease 2s;
+        }
+        
+        .hero-scroll-indicator {
+          position: absolute;
+          bottom: 3rem;
+          left: 3rem;
+          z-index: 30;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.5rem;
+          transition: opacity 0.4s ease;
+          pointer-events: none;
+        }
+        
+        .scroll-indicator-text {
+          display: flex;
+          align-items: baseline;
+          gap: 0.5rem;
+          color: #000;
+          mix-blend-mode: difference;
+          color: #fff;
+        }
+        
+        .scroll-indicator-text span {
+          font-family: var(--font-body);
+          font-size: 0.65rem;
+          text-transform: uppercase;
+          letter-spacing: 2px;
+          font-weight: 600;
+          opacity: 0.8;
+        }
+        
+        .scroll-indicator-text strong {
+          font-family: var(--font-display);
+          font-size: 1.2rem;
+          font-weight: 400;
+        }
+        
+        .scroll-indicator-track {
+          width: 120px;
+          height: 2px;
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 2px;
+          overflow: hidden;
+          mix-blend-mode: difference;
+        }
+        
+        .scroll-indicator-fill {
+          height: 100%;
+          background: #fff;
+          transition: width 0.1s linear;
         }
         .hero-sticky.is-in .hero-elevation {
           opacity: 1;
@@ -618,6 +734,87 @@ export default function Hero() {
           font-size: 0.8rem;
           text-transform: uppercase;
         }
+        
+        .hero-modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.7);
+          backdrop-filter: blur(8px);
+          z-index: 1000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 1rem;
+        }
+        
+        .hero-modal-content {
+          background: #fff;
+          padding: 3rem 2rem;
+          border-radius: 20px;
+          width: 100%;
+          max-width: 500px;
+          position: relative;
+        }
+
+        .hero-modal-close {
+          position: absolute;
+          top: 1rem;
+          right: 1rem;
+          background: none;
+          border: none;
+          cursor: pointer;
+          color: #000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0.5rem;
+        }
+        
+        .hero-input-group {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+        }
+        .hero-input-group label {
+          font-family: 'var(--font-body)';
+          font-size: 0.65rem;
+          font-weight: 700;
+          letter-spacing: 1px;
+          color: #888;
+          text-transform: uppercase;
+          margin-bottom: 0.5rem;
+        }
+        .hero-input-group input, .hero-input-group select {
+          background: transparent;
+          border: none;
+          outline: none;
+          font-family: 'var(--font-body)';
+          font-size: 1rem;
+          font-weight: 500;
+          color: #000;
+          padding: 0.5rem 0;
+          width: 100%;
+          text-transform: uppercase;
+          appearance: none;
+          cursor: pointer;
+        }
+        .hero-input-group input::placeholder {
+          color: #CCC;
+        }
+        .input-line {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 1px;
+          background-color: rgba(0,0,0,0.1);
+          transform-origin: left;
+          transition: transform 0.4s ease, background-color 0.4s ease;
+        }
+        .hero-input-group:focus-within .input-line {
+          background-color: #000;
+          transform: scaleY(2);
+        }
         .hero-desk-title {
           position: absolute;
           bottom: clamp(1.5rem, 4vh, 3rem);
@@ -683,15 +880,7 @@ export default function Hero() {
             transform: translateY(0);
           }
         }
-        @keyframes cursorBlink {
-          0%,
-          100% {
-            opacity: 0;
-          }
-          50% {
-            opacity: 1;
-          }
-        }
+
         @keyframes manifestoIn {
           0% {
             opacity: 0;
@@ -790,14 +979,7 @@ export default function Hero() {
             color: transparent;
             -webkit-text-stroke: 1.5px rgba(0, 0, 0, 0.55);
           }
-          .hero-manifesto-word em {
-            width: 7px;
-            height: clamp(2rem, 9vw, 3rem);
-            background: #000;
-            margin-left: 6px;
-            display: inline-block;
-            animation: cursorBlink 0.8s infinite;
-          }
+
           .hero-manifesto-word.is-ghost em {
             background: rgba(0, 0, 0, 0.45);
           }
@@ -939,6 +1121,22 @@ export default function Hero() {
           .hero-mobile-progress i.is-on {
             width: 32px;
             background: #fff;
+          }
+
+          .hero-scroll-indicator {
+            left: 1.25rem;
+            bottom: calc(65svh + 1.25rem); /* Just above the image section, in the text pane */
+            mix-blend-mode: normal;
+          }
+          
+          .scroll-indicator-text {
+            color: #000; /* Black for text pane */
+          }
+          .scroll-indicator-track {
+            background: rgba(0, 0, 0, 0.1);
+          }
+          .scroll-indicator-fill {
+            background: #000;
           }
         }
 
