@@ -372,7 +372,7 @@ function ProjectCard({ project, onChange, onDelete, onSave, showToast }: {
               <TextInput value={project.slug} onChange={(v) => update('slug', v.toLowerCase().replace(/\\s+/g, '-'))} placeholder="e.g. wayanad-mist-pavilion" />
             </Field>
             <Field label="Location">
-              <SelectInput value={project.location} onChange={(v) => update('location', v)} options={['Calicut', 'Kannur', 'Wayanad', 'Malappuram', 'Kochi', 'Other active project locations']} />
+              <TextInput value={project.location} onChange={(v) => update('location', v)} placeholder="e.g. Calicut" />
             </Field>
             <Field label="Category">
               <SelectInput value={project.category} onChange={(v) => update('category', v)} options={['Residential', 'Commercial', 'Hospitality', 'InteriorDesign']} />
