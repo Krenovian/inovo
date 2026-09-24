@@ -239,9 +239,9 @@ function OverviewTab({ data }: { data: AdminData }) {
 // ── TAB: HERO SLIDES ───────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════
 
-function HeroTab({ slides, onChange, onSave, saving }: {
+function HeroTab({ slides, onChange, onSave, saving, showToast }: {
   slides: HeroSlide[]; onChange: (s: HeroSlide[]) => void;
-  onSave: () => void; saving: boolean;
+  onSave: () => void; saving: boolean; showToast: (m: string, t?: 'success' | 'error') => void;
 }) {
   const updateSlide = (idx: number, field: keyof HeroSlide, value: string) => {
     const next = slides.map((s, i) => i === idx ? { ...s, [field]: value } : s);
@@ -286,6 +286,7 @@ function HeroTab({ slides, onChange, onSave, saving }: {
             label="Hero Image"
             aspectRatio="16/9"
             height={220}
+            showToast={showToast}
           />
         </div>
       ))}
@@ -304,8 +305,8 @@ function HeroTab({ slides, onChange, onSave, saving }: {
 // ── TAB: PROJECTS ──────────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════
 
-function ProjectCard({ project, onChange, onDelete, onSave }: {
-  project: Project; onChange: (p: Project) => void; onDelete: () => void; onSave: () => void;
+function ProjectCard({ project, onChange, onDelete, onSave, showToast }: {
+  project: Project; onChange: (p: Project) => void; onDelete: () => void; onSave: () => void; showToast: (m: string, t?: 'success' | 'error') => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -416,6 +417,7 @@ function ProjectCard({ project, onChange, onDelete, onSave }: {
             onUpload={(url) => update('heroImage', url)}
             label="Hero Image"
             height={240}
+            showToast={showToast}
           />
 
           {/* Gallery */}
@@ -448,6 +450,7 @@ function ProjectCard({ project, onChange, onDelete, onSave }: {
                   onUpload={(url) => updateGallery(gi, 'image', url)}
                   label="Gallery Image"
                   height={180}
+                  showToast={showToast}
                 />
               </div>
             ))}
@@ -465,13 +468,12 @@ function ProjectCard({ project, onChange, onDelete, onSave }: {
   );
 }
 
-function ProjectsTab() {
+function ProjectsTab({ showToast }: { showToast: (m: string, t?: 'success' | 'error') => void }) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const fetchProjects = useCallback(async (p: number) => {
     setLoading(true);
@@ -486,7 +488,7 @@ function ProjectsTab() {
       }
     } catch (e) {
       console.error(e);
-      setToast({ message: 'Failed to load projects', type: 'error' });
+      showToast('Failed to load projects', 'error');
     } finally {
       setLoading(false);
     }
@@ -508,7 +510,6 @@ function ProjectsTab() {
   };
 
   const saveProject = async (p: Project) => {
-    setToast(null);
     try {
       const res = await fetch('/api/admin/projects', {
         method: 'PUT',
@@ -516,12 +517,12 @@ function ProjectsTab() {
         body: JSON.stringify({ project: p }),
       });
       if (res.ok) {
-        setToast({ message: 'Project saved successfully!', type: 'success' });
+        showToast('Project saved successfully!', 'success');
       } else {
         throw new Error();
       }
     } catch {
-      setToast({ message: 'Failed to save project.', type: 'error' });
+      showToast('Failed to save project.', 'error');
     }
   };
 
@@ -537,21 +538,14 @@ function ProjectsTab() {
       
       if (res.ok) {
         setProjects(projects.filter((_, i) => i !== idx));
-        setToast({ message: 'Project deleted!', type: 'success' });
+        showToast('Project deleted!', 'success');
       } else {
-        setToast({ message: 'Failed to delete project.', type: 'error' });
+        showToast('Failed to delete project.', 'error');
       }
     } catch {
-      setToast({ message: 'Failed to delete project.', type: 'error' });
+      showToast('Failed to delete project.', 'error');
     }
   };
-
-  useEffect(() => {
-    if (toast) {
-      const t = setTimeout(() => setToast(null), 3000);
-      return () => clearTimeout(t);
-    }
-  }, [toast]);
 
   if (loading && projects.length === 0) {
     return <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}><Loader2 size={24} className="spin" color="#555" /></div>;
@@ -560,12 +554,7 @@ function ProjectsTab() {
   return (
     <div>
       <SectionHeader title="Projects" description="Manage all portfolio projects. Expand a project to edit its details and save." />
-      
-      {toast && (
-        <div style={{ padding: '0.75rem 1rem', marginBottom: '1.25rem', borderRadius: '10px', backgroundColor: toast.type === 'success' ? '#052e16' : '#2d0a0a', color: toast.type === 'success' ? '#86efac' : '#fca5a5', fontSize: '0.82rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          {toast.message}
-        </div>
-      )}
+
 
       {projects.map((p, idx) => (
         <ProjectCard
@@ -573,6 +562,7 @@ function ProjectsTab() {
           onChange={(updated) => updateProject(idx, updated)}
           onDelete={() => deleteProject(p.id, idx)}
           onSave={() => saveProject(p)}
+          showToast={showToast}
         />
       ))}
 
@@ -595,9 +585,9 @@ function ProjectsTab() {
 // ── TAB: ABOUT ─────────────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════
 
-function AboutTab({ about, onChange, onSave, saving }: {
+function AboutTab({ about, onChange, onSave, saving, showToast }: {
   about: AboutSection; onChange: (a: AboutSection) => void;
-  onSave: () => void; saving: boolean;
+  onSave: () => void; saving: boolean; showToast: (m: string, t?: 'success' | 'error') => void;
 }) {
   const update = (field: keyof AboutSection, value: string) => onChange({ ...about, [field]: value });
 
@@ -625,10 +615,10 @@ function AboutTab({ about, onChange, onSave, saving }: {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
         <div style={cardStyle}>
-          <ImageUploader currentImage={about.shard1Image} onUpload={(url) => update('shard1Image', url)} label="Background Shard 1 (top-left)" height={200} />
+          <ImageUploader currentImage={about.shard1Image} onUpload={(url) => update('shard1Image', url)} label="Background Shard 1 (top-left)" height={200} showToast={showToast} />
         </div>
         <div style={cardStyle}>
-          <ImageUploader currentImage={about.shard2Image} onUpload={(url) => update('shard2Image', url)} label="Background Shard 2 (bottom-right)" height={200} />
+          <ImageUploader currentImage={about.shard2Image} onUpload={(url) => update('shard2Image', url)} label="Background Shard 2 (bottom-right)" height={200} showToast={showToast} />
         </div>
       </div>
       <div style={stickyFooterStyle}>
@@ -645,7 +635,7 @@ function AboutTab({ about, onChange, onSave, saving }: {
 // ── TAB: TEAM ──────────────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════
 
-function TeamTab() {
+function TeamTab({ showToast }: { showToast: (m: string, t?: 'success' | 'error') => void }) {
   const [data, setData] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -688,11 +678,12 @@ function TeamTab() {
       if (res.ok) {
         const json = await res.json();
         setData(prev => prev.map(m => m.id === json.teamMember.id ? json.teamMember : m));
+        showToast('Team member saved successfully!', 'success');
       } else {
-        alert('Failed to save team member');
+        showToast('Failed to save team member', 'error');
       }
     } catch (error) {
-      alert('Error saving team member');
+      showToast('Error saving team member', 'error');
     } finally {
       setSavingId(null);
     }
@@ -708,9 +699,12 @@ function TeamTab() {
       });
       if (res.ok) {
         fetchData(page);
+        showToast('Team member deleted successfully!', 'success');
+      } else {
+        showToast('Failed to delete team member', 'error');
       }
     } catch (error) {
-      alert('Error deleting team member');
+      showToast('Error deleting team member', 'error');
     }
   };
 
@@ -772,6 +766,7 @@ function TeamTab() {
                       label="Portrait Photo"
                       height={280}
                       aspectRatio="3/4"
+                      showToast={showToast}
                     />
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>
                       <button onClick={() => handleDelete(m.id)} style={{ ...deleteBtnStyle, padding: '0.6rem 1rem' }}>
@@ -813,9 +808,9 @@ function TeamTab() {
 // ── TAB: SERVICES ──────────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════
 
-function ServicesTab({ services, onChange, onSave, saving }: {
+function ServicesTab({ services, onChange, onSave, saving, showToast }: {
   services: Service[]; onChange: (s: Service[]) => void;
-  onSave: () => void; saving: boolean;
+  onSave: () => void; saving: boolean; showToast: (m: string, t?: 'success' | 'error') => void;
 }) {
   const update = (idx: number, field: keyof Service, value: unknown) => {
     onChange(services.map((s, i) => i === idx ? { ...s, [field]: value } : s));
@@ -880,6 +875,7 @@ function ServicesTab({ services, onChange, onSave, saving }: {
             onUpload={(url) => update(idx, 'image', url)}
             label="Background Image"
             height={220}
+            showToast={showToast}
           />
         </div>
       ))}
@@ -898,7 +894,7 @@ function ServicesTab({ services, onChange, onSave, saving }: {
 // ── TAB: TESTIMONIALS ──────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════
 
-function TestimonialsTab() {
+function TestimonialsTab({ showToast }: { showToast: (m: string, t?: 'success' | 'error') => void }) {
   const [data, setData] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -941,11 +937,12 @@ function TestimonialsTab() {
       if (res.ok) {
         const json = await res.json();
         setData(prev => prev.map(t => t.id === json.testimonial.id ? json.testimonial : t));
+        showToast('Testimonial saved successfully!', 'success');
       } else {
-        alert('Failed to save testimonial');
+        showToast('Failed to save testimonial', 'error');
       }
     } catch (error) {
-      alert('Error saving testimonial');
+      showToast('Error saving testimonial', 'error');
     } finally {
       setSavingId(null);
     }
@@ -961,9 +958,12 @@ function TestimonialsTab() {
       });
       if (res.ok) {
         fetchData(page);
+        showToast('Testimonial deleted successfully!', 'success');
+      } else {
+        showToast('Failed to delete testimonial', 'error');
       }
     } catch (error) {
-      alert('Error deleting testimonial');
+      showToast('Error deleting testimonial', 'error');
     }
   };
 
@@ -1025,6 +1025,7 @@ function TestimonialsTab() {
                       onUpload={(url) => update(idx, 'photo', url)}
                       label="Profile / Thumbnail Photo"
                       height={200}
+                      showToast={showToast}
                     />
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>
                       <button onClick={() => handleDelete(t.id)} style={{ ...deleteBtnStyle, padding: '0.6rem 1rem' }}>
@@ -1066,9 +1067,9 @@ function TestimonialsTab() {
 // ── TAB: SETTINGS ──────────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════
 
-function SettingsTab({ settings, onChange, onSave, saving }: {
+function SettingsTab({ settings, onChange, onSave, saving, showToast }: {
   settings: SiteSettings; onChange: (s: SiteSettings) => void;
-  onSave: () => void; saving: boolean;
+  onSave: () => void; saving: boolean; showToast: (m: string, t?: 'success' | 'error') => void;
 }) {
   const update = (key: keyof SiteSettings, value: string) => onChange({ ...settings, [key]: value });
 
@@ -1083,6 +1084,7 @@ function SettingsTab({ settings, onChange, onSave, saving }: {
           label="Site Logo (PNG recommended)"
           height={160}
           aspectRatio="1/1"
+          showToast={showToast}
         />
       </div>
       <div style={cardStyle}>
@@ -1382,11 +1384,12 @@ export default function AdminPage() {
             onChange={(slides) => setData(d => ({ ...d, heroSlides: slides }))}
             onSave={() => save('/api/admin/hero-slides', { slides: data.heroSlides }, 'Hero Slides')}
             saving={saving}
+            showToast={showToast}
           />
         )}
 
         {activeTab === 'projects' && (
-          <ProjectsTab />
+          <ProjectsTab showToast={showToast} />
         )}
 
         {activeTab === 'about' && (
@@ -1395,11 +1398,12 @@ export default function AdminPage() {
             onChange={(about) => setData(d => ({ ...d, about }))}
             onSave={() => save('/api/admin/about', { about: data.about }, 'About Section')}
             saving={saving}
+            showToast={showToast}
           />
         )}
 
         {activeTab === 'team' && (
-          <TeamTab />
+          <TeamTab showToast={showToast} />
         )}
 
         {activeTab === 'services' && (
@@ -1408,11 +1412,12 @@ export default function AdminPage() {
             onChange={(services) => setData(d => ({ ...d, services }))}
             onSave={() => save('/api/admin/services', { services: data.services }, 'Services')}
             saving={saving}
+            showToast={showToast}
           />
         )}
 
         {activeTab === 'testimonials' && (
-          <TestimonialsTab />
+          <TestimonialsTab showToast={showToast} />
         )}
 
         {activeTab === 'settings' && (
@@ -1421,6 +1426,7 @@ export default function AdminPage() {
             onChange={(settings) => setData(d => ({ ...d, settings }))}
             onSave={() => save('/api/admin/settings', { settings: data.settings }, 'Site Settings')}
             saving={saving}
+            showToast={showToast}
           />
         )}
       </div>

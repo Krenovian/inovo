@@ -10,6 +10,7 @@ interface ImageUploaderProps {
   label?: string;
   aspectRatio?: string; // e.g. '16/9', '1/1', '3/4'
   height?: number;
+  showToast?: (msg: string, type?: 'success' | 'error') => void;
 }
 
 export default function ImageUploader({
@@ -18,6 +19,7 @@ export default function ImageUploader({
   label = 'Image',
   aspectRatio = '16/9',
   height = 200,
+  showToast,
 }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -44,17 +46,20 @@ export default function ImageUploader({
       if (!res.ok) {
         setError(data.error || 'Upload failed');
         setPreview(currentImage);
+        showToast?.('Upload failed: ' + (data.error || ''), 'error');
         return;
       }
 
       onUpload(data.url);
+      showToast?.('Image uploaded successfully!', 'success');
     } catch {
       setError('Network error during upload');
       setPreview(currentImage);
+      showToast?.('Network error during upload', 'error');
     } finally {
       setUploading(false);
     }
-  }, [currentImage, onUpload]);
+  }, [currentImage, onUpload, showToast]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
