@@ -5,10 +5,10 @@ import { ArrowUpRight } from 'lucide-react';
 import { useMouseParallax } from '@/hooks/useMouseParallax';
 
 const ECOSYSTEM_ENTITIES = [
-  { number: '01', name: 'INOVO Developers', descriptor: 'Design Consultancy' },
-  { number: '02', name: 'Upward', descriptor: 'Construction & Project Delivery' },
-  { number: '03', name: 'Scale', descriptor: 'Interiors, Furniture & Finishing' },
-  { number: '04', name: 'INOVO Properties', descriptor: 'Property Development & Opportunities' },
+  { number: '01', name: 'INOVO Developers', descriptor: 'Design Consultancy', link: 'https://www.instagram.com/inovodevelopers' },
+  { number: '02', name: 'Upward', descriptor: 'Construction & Project Delivery', link: 'https://www.instagram.com/upward.construction.llp/' },
+  { number: '03', name: 'Scale', descriptor: 'Interiors, Furniture & Finishing', link: 'https://www.instagram.com/scale_interiors_llp/' },
+  { number: '04', name: 'INOVO Properties', descriptor: 'Property Development & Opportunities', link: 'https://www.instagram.com/inovoproperties.in/' },
 ];
 
 export default function Ecosystem() {
@@ -74,7 +74,10 @@ export default function Ecosystem() {
           transition: 'transform 0.3s ease-out'
         }}>
           {ECOSYSTEM_ENTITIES.map((entity, i) => (
-            <div key={entity.number}
+            <a key={entity.number}
+              href={entity.link}
+              target="_blank"
+              rel="noopener noreferrer"
               data-reveal="up" data-delay={String(i + 1)}
               style={{
                 display: 'grid', gridTemplateColumns: 'clamp(40px, 5vw, 80px) 1fr auto',
@@ -82,7 +85,7 @@ export default function Ecosystem() {
                 padding: 'clamp(2rem, 4vh, 3rem) 0',
                 borderBottom: '1px solid rgba(255,255,255,0.1)',
                 cursor: 'pointer', transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-                position: 'relative', overflow: 'hidden'
+                position: 'relative', overflow: 'hidden', textDecoration: 'none'
               }}
               className="eco-row"
             >
@@ -118,7 +121,7 @@ export default function Ecosystem() {
               }} className="eco-arrow">
                 <ArrowUpRight size={24} color="#FFF" style={{ transition: 'all 0.4s ease' }} className="eco-arrow-icon" />
               </div>
-            </div>
+            </a>
           ))}
         </div>
       </div>

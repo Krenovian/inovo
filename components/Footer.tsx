@@ -41,7 +41,7 @@ export default function Footer() {
           <p className="body-lg" style={{ maxWidth: '600px', marginBottom: '3rem' }}>
             Ready to craft a restrained, climate-responsive built environment? Connect with us to discuss your next project.
           </p>
-          <a href="mailto:inovodevelopers@gmail.com" className="btn-primary">
+          <a href="https://wa.me/919809442227" target="_blank" rel="noopener noreferrer" className="btn-primary">
             Start a Conversation <ArrowRight size={16} />
           </a>
         </div>
@@ -90,15 +90,15 @@ export default function Footer() {
             <span className="label" style={{ display: 'block', marginBottom: '1.5rem' }}>Ecosystem</span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
               {[
-                { name: 'INOVO Developers', tag: 'Consultancy' },
-                { name: 'Upward', tag: 'Construction' },
-                { name: 'Scale', tag: 'Interiors' },
-                { name: 'INOVO Properties', tag: 'Development' },
+                { name: 'INOVO Developers', tag: 'Consultancy', link: 'https://www.instagram.com/inovodevelopers' },
+                { name: 'Upward', tag: 'Construction', link: 'https://www.instagram.com/upward.construction.llp/' },
+                { name: 'Scale', tag: 'Interiors', link: 'https://www.instagram.com/scale_interiors_llp/' },
+                { name: 'INOVO Properties', tag: 'Development', link: 'https://www.instagram.com/inovoproperties.in/' },
               ].map((e) => (
-                <div key={e.name} className="hover-lift" style={{ display: 'flex', flexDirection: 'column', width: 'fit-content' }}>
+                <a key={e.name} href={e.link} target="_blank" rel="noopener noreferrer" className="hover-lift" style={{ display: 'flex', flexDirection: 'column', width: 'fit-content', textDecoration: 'none' }}>
                   <span className="body-sm" style={{ color: 'var(--text)' }}>{e.name}</span>
                   <span className="label label-dark" style={{ fontSize: '0.6rem' }}>{e.tag}</span>
-                </div>
+                </a>
               ))}
             </div>
           </div>

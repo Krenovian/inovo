@@ -285,18 +285,6 @@ export default function Hero() {
               transform: `translate3d(${mousePos.x * 15}px, ${mousePos.y * 15}px, 0)`,
             }}
           >
-            <div className="hero-tags">
-              {[
-                { num: '01', label: 'Design' },
-                { num: '02', label: 'Interiors' },
-                { num: '03', label: 'Supervision' },
-              ].map((tag) => (
-                <div key={tag.num}>
-                  <span>{tag.num}</span>
-                  <em>{tag.label}</em>
-                </div>
-              ))}
-            </div>
             <div className="hero-status">
               <span>Current Status</span>
               <h3>{settings.availabilityStatus || 'Accepting New Projects'}</h3>
@@ -657,7 +645,7 @@ export default function Hero() {
           justify-content: center;
         }
         .hero-desk-right {
-          justify-content: space-between;
+          justify-content: flex-end;
           align-items: flex-end;
         }
         .hero-tags {
