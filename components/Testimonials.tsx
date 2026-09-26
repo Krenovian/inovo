@@ -37,6 +37,40 @@ const FALLBACK_TESTIMONIALS = [
 
 type TestimonialData = { id: string; name: string; role: string; photo: string; videoUrl: string; };
 
+function getYouTubeEmbedUrl(url: string) {
+  if (!url) return '';
+  try {
+    if (url.includes('youtube.com/embed/')) return url;
+    
+    // Add protocol if missing to prevent URL parsing errors
+    let validUrl = url;
+    if (!validUrl.startsWith('http://') && !validUrl.startsWith('https://')) {
+      validUrl = 'https://' + validUrl;
+    }
+    
+    let videoId = '';
+    const urlObj = new URL(validUrl);
+    if (urlObj.hostname.includes('youtube.com')) {
+      if (urlObj.pathname === '/watch') {
+        videoId = urlObj.searchParams.get('v') || '';
+      } else if (urlObj.pathname.startsWith('/shorts/')) {
+        videoId = urlObj.pathname.split('/shorts/')[1];
+      }
+    } else if (urlObj.hostname === 'youtu.be') {
+      videoId = urlObj.pathname.slice(1);
+    }
+    
+    if (videoId) {
+      // Remove any trailing slashes or queries that might have snuck in (though split handles most)
+      videoId = videoId.split('/')[0].split('?')[0];
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&enablejsapi=1`;
+    }
+  } catch (e) {
+    // Ignore invalid URLs
+  }
+  return url;
+}
+
 export default function Testimonials() {
   const containerRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -205,7 +239,7 @@ function TestimonialCard({ testimonial }: { testimonial: any }) {
         {isHovered && (
           <iframe
             ref={iframeRef}
-            src={testimonial.videoUrl}
+            src={getYouTubeEmbedUrl(testimonial.videoUrl)}
             title={testimonial.name}
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
